@@ -7,6 +7,22 @@ const Review = require('../models/Review');
 const LikeDislike = require('../models/LikeDislike');
 const User = require('../models/User');
 
+async function enrichBooks(books) {
+  return await Promise.all(books.map(async (bookDoc) => {
+    const book = bookDoc.toObject ? bookDoc.toObject() : bookDoc;
+    const likesCount = await LikeDislike.countDocuments({ bookId: book._id, type: 'like' });
+    const dislikesCount = await LikeDislike.countDocuments({ bookId: book._id, type: 'dislike' });
+    const reviewsCount = await Review.countDocuments({ bookId: book._id });
+    
+    const reviews = await Review.find({ bookId: book._id });
+    const rating = reviews.length > 0 
+      ? (reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1)
+      : 4.5;
+      
+    return { ...book, likesCount, dislikesCount, reviewsCount, rating };
+  }));
+}
+
 // @route   GET /books/search
 // @desc    Search books by title or author
 // @access  Public
@@ -23,7 +39,8 @@ router.get('/search', async (req, res) => {
     }
 
     const books = await Book.find(query);
-    res.json(books);
+    const enrichedBooks = await enrichBooks(books);
+    res.json(enrichedBooks);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -41,7 +58,8 @@ router.get('/recommend', auth, async (req, res) => {
     
     // For now, let's just return books they haven't liked yet as a simple mock.
     const recommended = await Book.find({ _id: { $nin: user.likedBooks } }).limit(10);
-    res.json(recommended);
+    const enrichedRecommended = await enrichBooks(recommended);
+    res.json(enrichedRecommended);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
@@ -54,7 +72,8 @@ router.get('/recommend', auth, async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const books = await Book.find().sort({ createdAt: -1 });
-    res.json(books);
+    const enrichedBooks = await enrichBooks(books);
+    res.json(enrichedBooks);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');
