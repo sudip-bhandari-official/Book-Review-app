@@ -1,19 +1,16 @@
-import 'dotenv/config';
-import { GoogleGenAI, Type } from "@google/genai";
-import fs from "fs";
+require('dotenv').config();
+const fs = require('fs');
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-
-function fileToGenerativePart(path, mimeType) {
+function fileToGenerativePart(filePath, mimeType) {
   return {
     inlineData: {
-      data: Buffer.from(fs.readFileSync(path)).toString("base64"),
-      mimeType,
+      data: Buffer.from(fs.readFileSync(filePath)).toString('base64'),
+      mimeType: mimeType || 'image/jpeg',
     },
   };
 }
 
-export async function verifyBookSubmission({
+async function verifyBookSubmission({
   bookName,
   author,
   genre,
@@ -22,6 +19,14 @@ export async function verifyBookSubmission({
   imagePath,
   imageMimeType,
 }) {
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    throw new Error('GEMINI_API_KEY is required in environment variables');
+  }
+
+  const { GoogleGenAI, Type } = require('@google/genai');
+  const ai = new GoogleGenAI({ apiKey });
+
   const imagePart = fileToGenerativePart(imagePath, imageMimeType);
 
   const prompt = `
@@ -40,10 +45,10 @@ export async function verifyBookSubmission({
   `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: 'gemini-1.5-flash',
     contents: [imagePart, prompt],
     config: {
-      responseMimeType: "application/json",
+      responseMimeType: 'application/json',
       responseSchema: {
         type: Type.OBJECT,
         properties: {
@@ -58,12 +63,12 @@ export async function verifyBookSubmission({
           },
         },
         required: [
-          "is_approved",
-          "image_verified",
-          "fact_verified",
-          "review_safe",
-          "confidence_score",
-          "reasons",
+          'is_approved',
+          'image_verified',
+          'fact_verified',
+          'review_safe',
+          'confidence_score',
+          'reasons',
         ],
       },
       temperature: 0.1,
@@ -72,3 +77,7 @@ export async function verifyBookSubmission({
 
   return JSON.parse(response.text);
 }
+
+module.exports = {
+  verifyBookSubmission,
+};
