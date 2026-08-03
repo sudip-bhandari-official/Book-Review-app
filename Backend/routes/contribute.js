@@ -33,10 +33,10 @@ router.post('/upload', auth, upload.single('image'), async (req, res) => {
     contribution.aiResult = aiResult;
 
     if (aiResult.validated && !aiResult.isDuplicate) {
-      // Create new book entry based on AI parsed data or user metadata
+      // Create new book entry based on user metadata or AI extracted data
       const newBook = new Book({
-        title: metadata.title || 'Unknown Title (AI Pending)',
-        author: metadata.author || 'Unknown Author',
+        title: metadata.title || aiResult.detectedTitle || 'Unknown Title',
+        author: metadata.author || aiResult.detectedAuthor || 'Unknown Author',
         coverImageUrl: imagePath,
         addedBy: req.user.id,
         duplicateCheckPass: true
@@ -55,12 +55,19 @@ router.post('/upload', auth, upload.single('image'), async (req, res) => {
       contribution.finalBookId = aiResult.existingBookId;
       await contribution.save();
 
-      res.status(409).json({ msg: 'Duplicate book found', existingBookId: aiResult.existingBookId, contribution });
+      res.status(409).json({ 
+        msg: aiResult.reason || 'Duplicate book found', 
+        existingBookId: aiResult.existingBookId, 
+        contribution 
+      });
     } else {
       contribution.status = 'rejected';
       await contribution.save();
       
-      res.status(400).json({ msg: 'Contribution rejected by AI validation', contribution });
+      res.status(400).json({ 
+        msg: aiResult.reason || 'Contribution rejected by AI validation', 
+        contribution 
+      });
     }
   } catch (err) {
     console.error(err.message);
