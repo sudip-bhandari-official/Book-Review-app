@@ -1,9 +1,12 @@
 /* ============================================================
    BookNest — API Integration Service
-   Communicates with Express Backend (http://localhost:5000)
+   Communicates with Express Backend.
+   The backend URL is configured via VITE_API_URL (see src/config.js).
    ============================================================ */
 
-const BASE_URL = 'http://localhost:5000';
+import { API_BASE_URL } from '../config.js';
+
+const BASE_URL = API_BASE_URL;
 
 // Helper to retrieve token from localStorage
 export const getToken = () => localStorage.getItem('bn_token');

@@ -1,10 +1,18 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-export default defineConfig({
+// https://vitejs.dev/config/
+export default defineConfig(({ mode }) => ({
   plugins: [react()],
   server: {
     port: 3000,
-    open: true
-  }
-});
+    open: mode === 'development',
+  },
+  preview: {
+    port: 4173,
+  },
+  build: {
+    outDir: 'dist',
+    sourcemap: false,
+  },
+}));

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { X, Star, ThumbsUp, ThumbsDown, MessageSquare, Trash2, Send } from 'lucide-react';
 import { booksAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { toAssetUrl } from '../config.js';
 
 export const BookDetailModal = ({ book, onClose, addToast }) => {
   const { user, isAdmin } = useAuth();
@@ -98,11 +99,7 @@ export const BookDetailModal = ({ book, onClose, addToast }) => {
 
   if (!book) return null;
 
-  const getCoverUrl = (url) => {
-    if (!url) return 'https://placehold.co/300x400/6d5efc/ffffff?text=BookCover';
-    if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('assets/')) return url;
-    return `http://localhost:5000/${url}`;
-  };
+  const getCoverUrl = (url) => toAssetUrl(url);
 
   return (
     <div className="modal-overlay" onClick={onClose}>

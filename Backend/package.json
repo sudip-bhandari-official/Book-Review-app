@@ -1,15 +1,24 @@
 {
-  "name": "backend",
+  "name": "booknest-backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "BookNest — Express/Mongo backend for the Book Review app",
+  "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node server.js",
+    "dev": "node --watch server.js"
   },
-  "keywords": [],
+  "keywords": [
+    "book",
+    "review",
+    "express",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",

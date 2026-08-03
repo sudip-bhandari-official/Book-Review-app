@@ -1,12 +1,9 @@
 import React from 'react';
 import { Star, ThumbsUp, ThumbsDown, MessageSquare } from 'lucide-react';
+import { toAssetUrl } from '../config.js';
 
 export const BookCard = ({ book, onSelectBook, onLike, onDislike }) => {
-  const getCoverUrl = (url) => {
-    if (!url) return 'https://placehold.co/300x400/6d5efc/ffffff?text=BookCover';
-    if (url.startsWith('http') || url.startsWith('blob:') || url.startsWith('assets/')) return url;
-    return `http://localhost:5000/${url}`;
-  };
+  const getCoverUrl = (url) => toAssetUrl(url);
 
   return (
     <article className="book-card" onClick={() => onSelectBook(book)}>
