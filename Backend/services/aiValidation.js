@@ -5,7 +5,7 @@
  * 1. Step 1: AI OCR & Feature Extraction (Gemini API gemini-2.0-flash)
  * 2. Step 2: Quality & Image Validation Check
  * 3. Step 3: Database Duplicate Scan (Book Model)
- * 4. Step 4: Auto-Insert New Book to Database
+ * 4. Step 4: Auto-Insert New Book with Cover Image to Database
  */
 
 const fs = require('fs');
@@ -19,7 +19,7 @@ dotenv.config({ path: envPath });
 
 /**
  * Validates an uploaded book cover contribution using Gemini AI vision OCR extraction,
- * performs database duplicate scanning, and auto-inserts the new book if valid.
+ * performs database duplicate scanning, and auto-inserts the new book with cover photo if valid.
  * 
  * @param {string} imagePath - Path to uploaded image file
  * @param {object} metadata - Optional user-supplied metadata { title, author, description, userId, contributedBy }
@@ -163,7 +163,7 @@ Respond ONLY with raw JSON (no markdown formatting, no code blocks):
     const finalTitle = extractedTitle || (metadata.title || '').trim();
     const finalAuthor = extractedAuthor || (metadata.author || '').trim() || 'Unknown Author';
 
-    if (!finalTitle) {
+    if (!finalTitle || finalTitle.length === 0) {
       return {
         success: false,
         status: "INVALID_COVER",
@@ -195,21 +195,24 @@ Respond ONLY with raw JSON (no markdown formatting, no code blocks):
     }
 
     // -------------------------------------------------------------------------
-    // Step 4: Auto-Insert New Book to Database
+    // Step 4: Auto-Insert New Book with Cover Image to Database
     // -------------------------------------------------------------------------
     const userId = metadata.userId || metadata.contributedBy || metadata.addedBy || null;
+
+    // Normalize imagePath (convert backslashes to forward slashes for web compatibility)
+    const normalizedCoverPath = imagePath ? imagePath.replace(/\\/g, '/') : '';
 
     const newBook = new Book({
       title: finalTitle,
       author: finalAuthor,
       summary: extractedDescription || metadata.description || '',
-      coverImageUrl: imagePath,
+      coverImageUrl: normalizedCoverPath,
       addedBy: userId,
       duplicateCheckPass: true
     });
 
     const newSavedBook = await newBook.save();
-    console.log(`[AI Validation Service] Book successfully auto-inserted (ID: ${newSavedBook._id})`);
+    console.log(`[AI Validation Service] Book with cover photo successfully saved in DB (ID: ${newSavedBook._id}, Cover: ${normalizedCoverPath})`);
 
     return {
       success: true,
