@@ -3,11 +3,10 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const upload = require('../middleware/upload');
 const Contribution = require('../models/Contribution');
-const Book = require('../models/Book');
 const { validateContribution } = require('../services/aiValidation');
 
 // @route   POST /contribute/upload
-// @desc    Upload an image for book contribution validation
+// @desc    Upload an image for book contribution validation and auto-database insertion
 // @access  Private
 router.post('/upload', auth, upload.single('image'), async (req, res) => {
   try {
@@ -16,7 +15,7 @@ router.post('/upload', auth, upload.single('image'), async (req, res) => {
     }
 
     const imagePath = req.file.path;
-    const metadata = req.body; // e.g. title, author entered by user if any
+    const metadata = { ...req.body, userId: req.user.id };
 
     // Create a pending contribution record
     let contribution = new Contribution({
@@ -27,50 +26,45 @@ router.post('/upload', auth, upload.single('image'), async (req, res) => {
     
     await contribution.save();
 
-    // Call AI Validation service
+    // Call AI Validation service (extracts OCR metadata, checks duplicates, & auto-inserts new book)
     const aiResult = await validateContribution(imagePath, metadata);
     
     contribution.aiResult = aiResult;
 
-    if (aiResult.validated && !aiResult.isDuplicate) {
-      // Create new book entry based on user metadata or AI extracted data
-      const newBook = new Book({
-        title: metadata.title || aiResult.detectedTitle || 'Unknown Title',
-        author: metadata.author || aiResult.detectedAuthor || 'Unknown Author',
-        coverImageUrl: imagePath,
-        addedBy: req.user.id,
-        duplicateCheckPass: true
-      });
-
-      const savedBook = await newBook.save();
-      
-      // Update contribution
+    if (aiResult.success && aiResult.book) {
+      // Contribution approved & auto-inserted into Book collection
       contribution.status = 'approved';
-      contribution.finalBookId = savedBook._id;
+      contribution.finalBookId = aiResult.book._id;
       await contribution.save();
 
-      res.json({ msg: 'Contribution approved and book added', book: savedBook, contribution });
-    } else if (aiResult.isDuplicate) {
+      res.json({
+        msg: aiResult.message || 'Book successfully identified and added to BookNest!',
+        book: aiResult.book,
+        contribution
+      });
+    } else if (aiResult.status === 'DUPLICATE_ENTRY' || aiResult.isDuplicate) {
+      // Duplicate book entry found in database
       contribution.status = 'rejected';
       contribution.finalBookId = aiResult.existingBookId;
       await contribution.save();
 
       res.status(409).json({ 
-        msg: aiResult.reason || 'Duplicate book found', 
+        msg: aiResult.message || aiResult.reason || 'This book already exists in BookNest database.', 
         existingBookId: aiResult.existingBookId, 
         contribution 
       });
     } else {
+      // Invalid cover or quality check failed
       contribution.status = 'rejected';
       await contribution.save();
       
       res.status(400).json({ 
-        msg: aiResult.reason || 'Contribution rejected by AI validation', 
+        msg: aiResult.message || aiResult.reason || 'Uploaded image does not appear to be a valid book cover.', 
         contribution 
       });
     }
   } catch (err) {
-    console.error(err.message);
+    console.error('[Contribute Route Error]:', err.message);
     res.status(500).send('Server Error');
   }
 });

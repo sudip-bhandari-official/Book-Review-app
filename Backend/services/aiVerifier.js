@@ -45,7 +45,7 @@ async function verifyBookSubmission({
   `;
 
   const response = await ai.models.generateContent({
-    model: 'gemini-1.5-flash',
+    model: 'gemini-2.0-flash',
     contents: [imagePart, prompt],
     config: {
       responseMimeType: 'application/json',
@@ -75,7 +75,8 @@ async function verifyBookSubmission({
     },
   });
 
-  return JSON.parse(response.text);
+  const text = response.text || '';
+  return JSON.parse(text);
 }
 
 module.exports = {
