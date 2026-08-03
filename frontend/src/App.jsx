@@ -8,6 +8,7 @@ import { BookDetailModal } from './components/BookDetailModal';
 import { AuthModal } from './components/AuthModal';
 import { ContributeModal } from './components/ContributeModal';
 import { ProfileModal } from './components/ProfileModal';
+import { AdminPanelModal } from './components/AdminPanelModal';
 import { Toast } from './components/Toast';
 import { API_BASE_URL } from './config.js';
 
@@ -26,6 +27,7 @@ function MainApp() {
   const [authMode, setAuthMode] = useState('login');
   const [contributeModalOpen, setContributeModalOpen] = useState(false);
   const [profileModalOpen, setProfileModalOpen] = useState(false);
+  const [adminModalOpen, setAdminModalOpen] = useState(false);
 
   // Toasts
   const [toasts, setToasts] = useState([]);
@@ -115,6 +117,7 @@ function MainApp() {
         openAuthModal={openAuth}
         openProfileModal={() => setProfileModalOpen(true)}
         openContributeModal={() => setContributeModalOpen(true)}
+        openAdminModal={() => setAdminModalOpen(true)}
         searchQuery={searchQuery}
         setSearchQuery={setSearchQuery}
         onSearchSubmit={handleSearch}
@@ -284,11 +287,20 @@ function MainApp() {
         />
       )}
 
+      {adminModalOpen && (
+        <AdminPanelModal
+          onClose={() => setAdminModalOpen(false)}
+          addToast={addToast}
+          onBookAdded={(newBook) => setBooks((prev) => [newBook, ...prev])}
+        />
+      )}
+
       {/* Toasts */}
       <Toast toasts={toasts} removeToast={removeToast} />
     </div>
   );
 }
+
 
 export default function App() {
   return (

