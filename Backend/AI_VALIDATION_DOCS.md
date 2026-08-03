@@ -1,6 +1,6 @@
 # Book Review Backend - AI Validation Integration Guide & Verification
 
-This document provides technical documentation for the AI Validation & Automated Moderation service inside `Backend/services/ai/aiValidation.js`.
+This document provides technical documentation for the AI Validation & Automated Moderation service inside `Backend/services/aiValidation.js`.
 
 ---
 
@@ -22,10 +22,8 @@ Backend/
 ├── routes/
 │   └── contribute.js        <-- Express upload endpoint (/contribute/upload)
 ├── services/
-│   ├── aiValidation.js      <-- Bridge export pointing to services/ai/aiValidation
-│   └── ai/
-│       ├── aiValidation.js  <-- Core Gemini Vision & DB duplicate moderation engine
-│       └── aiVerifier.js    <-- Schema structured verification service
+│   ├── aiValidation.js      <-- Core Gemini Vision & DB duplicate moderation engine
+│   └── aiVerifier.js        <-- Schema structured verification service
 ```
 
 ---
