@@ -1,26 +1,33 @@
-# Dependencies
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Dependency directories
 node_modules/
 
-# Build output
-dist/
-build/
+# Editor and IDE settings
+.vscode/
+.idea/
+*.suo
+*.user
+*.userossc
+*.sln
+*.swp
 
-# Environment files (never commit secrets!)
-.env
-.env.local
-.env.*.local
-
-# Runtime data
-Backend/uploads/
+# Logs
+logs
+*.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
-# Editor / OS
+# OS metadata
 .DS_Store
-.idea/
-.vscode/
-*.swp
-*.swo
 Thumbs.db
+
+# Test outputs & temporary uploads
+coverage/
+uploads/
+temp/
