@@ -9,6 +9,7 @@ import { AuthModal } from './components/AuthModal';
 import { ContributeModal } from './components/ContributeModal';
 import { ProfileModal } from './components/ProfileModal';
 import { Toast } from './components/Toast';
+import { API_BASE_URL } from './config.js';
 
 function MainApp() {
   const { user } = useAuth();
@@ -231,7 +232,7 @@ function MainApp() {
           </div>
           <div>
             <h4 style={{ color: '#fff', fontSize: '0.95rem', marginBottom: '1rem' }}>API Backend</h4>
-            <p style={{ fontSize: '0.88rem', color: '#a0a0b8', marginBottom: '0.5rem' }}>Base URL: http://localhost:5000</p>
+            <p style={{ fontSize: '0.88rem', color: '#a0a0b8', marginBottom: '0.5rem' }}>Base URL: {API_BASE_URL}</p>
             <p style={{ fontSize: '0.88rem', color: '#a0a0b8' }}>AI Cover Validation Active</p>
           </div>
           <div>
