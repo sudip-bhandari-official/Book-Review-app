@@ -1,0 +1,32 @@
+# Render Blueprint — deploys the BookNest Express backend.
+# The frontend is deployed separately on Vercel (see DEPLOYMENT.md).
+#
+# To use:
+#   1. Push this file to GitHub.
+#   2. On https://dashboard.render.com → "Blueprints" → "New Blueprint Instance"
+#      and connect this repo.
+#   3. Render will auto-create the Web Service; fill in the required env vars
+#      (MONGODB_URI, JWT_SECRET, ADMIN_SECRET_KEY, CORS_ORIGINS) when prompted.
+
+services:
+  - type: web
+    name: booknest-backend
+    env: node
+    plan: free
+    rootDir: Backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000" # Render sets its own PORT at runtime; this is just a default
+      - key: MONGODB_URI
+        sync: false # supply manually (MongoDB Atlas connection string)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        sync: false # set to your Vercel URL(s), comma-separated, e.g. https://booknest.vercel.app
